@@ -4,6 +4,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using OpenShock.SDK.CSharp.Models;
 using VRCOSC.App.SDK.Modules.Attributes.Settings;
@@ -30,8 +31,22 @@ public class Phrase : IEquatable<Phrase>
     [JsonProperty("name")]
     public Observable<string> Name { get; } = new("New Phrase");
 
+    [JsonProperty("use_regex")]
+    public Observable<bool> UseRegex { get; } = new(false);
+
     [JsonProperty("text")]
     public Observable<string> Text { get; } = new(string.Empty);
+
+    private Regex? textRegex;
+
+    public bool Matches(string text)
+    {
+        if (!UseRegex.Value) return Text.Value == text;
+        if (textRegex is not null) return textRegex.IsMatch(text);
+
+        textRegex = new Regex(Text.Value, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        return textRegex.IsMatch(text);
+    }
 
     [JsonProperty("mode")]
     public Observable<ControlType> Mode { get; } = new();
@@ -48,6 +63,7 @@ public class Phrase : IEquatable<Phrase>
     [JsonConstructor]
     public Phrase()
     {
+        Text.Subscribe(() => textRegex = null);
     }
 
     public bool Equals(Phrase? other)

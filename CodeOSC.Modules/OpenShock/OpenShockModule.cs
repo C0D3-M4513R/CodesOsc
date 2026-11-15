@@ -225,9 +225,8 @@ public class OpenShockModule : Module, ISpeechHandler
     private void handleSpeechText(string text)
     {
         if (string.IsNullOrEmpty(text)) return;
-        Regex.
 
-        foreach (var phrase in GetSettingValue<List<Phrase>>(OpenShockSetting.Phrases).Where(phrase => !executedPhrases.Contains(phrase.ID) && text.Contains(phrase.Text.Value, StringComparison.InvariantCultureIgnoreCase)))
+        foreach (var phrase in GetSettingValue<List<Phrase>>(OpenShockSetting.Phrases).Where(phrase => !executedPhrases.Contains(phrase.ID) && phrase.Matches(text)))
         {
             var log = $"Found phrase '{phrase.Text.Value}'";
             Log(log);

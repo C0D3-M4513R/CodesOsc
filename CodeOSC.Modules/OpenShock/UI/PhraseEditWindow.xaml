@@ -22,9 +22,14 @@
                              FontSize="16" />
                 </core:TitleDescriptionContent>
                 <core:TitleDescriptionContent Title="Text" Description="The text to listen for">
-                    <TextBox Text="{Binding Phrase.Text.Value, UpdateSourceTrigger=PropertyChanged}"
-                             Background="{StaticResource CBackground3}" Foreground="{StaticResource CForeground1}"
-                             FontSize="16" />
+                    <StackPanel>
+                        <CheckBox Content="Use Regex" IsChecked="{Binding Phrase.UseRegex.Value, UpdateSourceTrigger=PropertyChanged}" 
+                                  Background="{StaticResource CForeground1}" Foreground="{StaticResource CForeground1}"
+                                  FontSize="16"/>
+                        <TextBox Text="{Binding Phrase.Text.Value, UpdateSourceTrigger=PropertyChanged}"
+                                 Background="{StaticResource CBackground3}" Foreground="{StaticResource CForeground1}"
+                                 FontSize="16" />
+                    </StackPanel>
                 </core:TitleDescriptionContent>
                 <core:TitleDescriptionContent Title="Mode" Description="The mode this phrase should execute">
                     <ComboBox
