@@ -37,11 +37,11 @@
                         FontSize="16" SelectedValue="{Binding Phrase.Mode.Value}" />
                 </core:TitleDescriptionContent>
                 <core:TitleDescriptionContent Title="Duration"
-                                              Description="The duration this phrase will execute for">
+                                              Description="The duration in ms this phrase will execute for">
                     <core:VRCOSCSlider Height="50" Value="{Binding Phrase.Duration.Value}" MinValue="300" MaxValue="30000" SliderType="Int"/>
                 </core:TitleDescriptionContent>
                 <core:TitleDescriptionContent Title="Intensity"
-                                              Description="The intensity this phrase will execute using">
+                                              Description="The intensity in % this phrase will execute using">
                     <core:VRCOSCSlider Height="50" Value="{Binding Phrase.Intensity.Value}" MinValue="0" MaxValue="100" SliderType="Int"/>
                 </core:TitleDescriptionContent>
                 <core:TitleDescriptionContent Title="Groups" Description="The groups this phrase should control">
