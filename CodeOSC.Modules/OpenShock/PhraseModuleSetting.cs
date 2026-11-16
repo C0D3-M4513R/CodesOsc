@@ -44,7 +44,7 @@ public class Phrase : IEquatable<Phrase>
         if (!UseRegex.Value) return Text.Value == text;
         if (textRegex is not null) return textRegex.IsMatch(text);
 
-        textRegex = new Regex(Text.Value, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        textRegex = new Regex(Text.Value, RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
         return textRegex.IsMatch(text);
     }
 

@@ -61,11 +61,13 @@ public class OpenShockModule : Module, ISpeechHandler
 
         CreateCustomSetting(OpenShockSetting.Groups, new ShockerGroupModuleSetting());
         CreateCustomSetting(OpenShockSetting.Phrases, new PhraseModuleSetting());
+        CreateToggle(OpenShockSetting.PrintAllText, "Print All Text", "Print All recognised Text", false);
+        CreateToggle(OpenShockSetting.PrintMatchedText, "Print Matched Text", "Print Text, where at least one match was found", false);
 
         CreateGroup("Credentials", string.Empty, OpenShockSetting.Server, OpenShockSetting.APIKey, OpenShockSetting.ShockerCache);
         CreateGroup("Management", string.Empty, OpenShockSetting.Groups);
         CreateGroup("Tweaks", string.Empty, OpenShockSetting.ButtonDelay);
-        CreateGroup("Speech", string.Empty, OpenShockSetting.Phrases);
+        CreateGroup("Speech", string.Empty, OpenShockSetting.Phrases, OpenShockSetting.PrintAllText, OpenShockSetting.PrintMatchedText);
 
         RegisterParameter<int>(OpenShockParameter.Group, "VRCOSC/PiShock/Group", ParameterMode.Read, "Group", "Sets the specific group to use when using the non-specific action parameters");
         RegisterParameter<float>(OpenShockParameter.Duration, "VRCOSC/PiShock/Duration", ParameterMode.Read, "Duration", "The duration of the action as a 0-1 float for the group set by the Group parameter");
@@ -224,6 +226,8 @@ public class OpenShockModule : Module, ISpeechHandler
     public void OnFinalSpeechResult(string text)
     {
         handleSpeechText(text);
+        if (GetSettingValue<bool>(OpenShockSetting.PrintAllText) || (GetSettingValue<bool>(OpenShockSetting.PrintMatchedText) && executedPhrases.Count > 0))
+            Log($"Detected following text: '{text}'");
         executedPhrases.Clear();
     }
 
@@ -384,7 +388,7 @@ public class OpenShockModule : Module, ISpeechHandler
             return true;
         }
 
-        var instancesNames = string.Join("', '", instances
+        var instancesNames = string.Join("\n\t", instances
             .Select(item =>
             {
                 var id = ShockerWithHubs.Attribute.SingleOrDefault(i => i.Shocker.Id == item.Id);
@@ -392,7 +396,7 @@ public class OpenShockModule : Module, ISpeechHandler
             })
         );
 
-        Log($"Executing shockers: '{instancesNames}'");
+        Log($"Executing shockers: \n\t{instancesNames}'");
 
         try
         {
@@ -404,7 +408,7 @@ public class OpenShockModule : Module, ISpeechHandler
 
             if (result.TryPickT0(out _, out var result1))
             {
-                Log($"Successully executed shockers: '{instancesNames}'");
+                Log($"Successully executed shockers: \n\t{instancesNames}");
                 return true;
             }
 
@@ -562,6 +566,8 @@ public class OpenShockModule : Module, ISpeechHandler
         Server,
         APIKey,
         ShockerCache,
+        PrintAllText,
+        PrintMatchedText,
         ButtonDelay,
         Groups,
         Phrases
