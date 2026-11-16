@@ -12,7 +12,6 @@
     
 
     <ItemGroup>
-      <PackageReference Include="OpenShock.SDK.CSharp.Live" Version="0.0.45" />
       <PackageReference Include="OpenShock.SDK.CSharp" Version="0.0.45" />
       <PackageReference Include="OneOf" Version="3.0.271"/>
       <PackageReference Include="VolcanicArts.VRCOSC.SDK" Version="2026.501.0" IncludeAssets="compile"/>
