@@ -23,9 +23,9 @@ using Module = VRCOSC.App.SDK.Modules.Module;
 namespace CodeOSC.Modules.OpenShock;
 
 [ModuleTitle("OpenShock")]
-[ModuleDescription("Allows for controlling OpenShock shockers with avatar parameters and your voice")]
+[ModuleDescription("Allows for controlling OpenShock shockers with avatar parameters and your voice (PiShock Prefab Compatible)")]
 [ModuleType(ModuleType.NSFW)]
-[ModulePrefab("Official Prefabs", "https://vrcosc.com/docs/downloads#prefabs")]
+[ModulePrefab("PiShock Prefabs", "https://vrcosc.com/docs/downloads#prefabs")]
 public class OpenShockModule : Module, ISpeechHandler
 {
     private OpenShockApiClient openShockProvider = null!;
