@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CodeOSC.Modules.OpenShock.UI;
@@ -30,7 +29,7 @@ namespace CodeOSC.Modules.OpenShock;
 public class OpenShockModule : Module, ISpeechHandler
 {
     private OpenShockApiClient openShockProvider = null!;
-    private readonly CancellationTokenSource cancellationToken = new CancellationTokenSource();
+    private CancellationTokenSource cancellationToken = new CancellationTokenSource();
 
     private Guid? globalGroupID;
     private float globalDuration;
@@ -48,21 +47,14 @@ public class OpenShockModule : Module, ISpeechHandler
 
     private readonly List<Guid> executedPhrases = [];
 
-    public ImmutableArray<ResponseHubWithShockers> ShockersList { get; private set; }
-
-    public ImmutableArray<ShockerWithHub> ShockerWithHubs => ShockersList.SelectMany(hub => hub.Shockers.Select(shocker => new ShockerWithHub
-    {
-        Hub = hub,
-        Shocker = shocker,
-    })).ToImmutableArray();
-
+    public ShockerCacheSetting ShockerWithHubs => GetSetting<ShockerCacheSetting>(OpenShockSetting.ShockerCache);
     public ShockerGroupModuleSetting GroupsSetting => GetSetting<ShockerGroupModuleSetting>(OpenShockSetting.Groups);
 
     protected override void OnPreLoad()
     {
-        ShockersList = new ImmutableArray<ResponseHubWithShockers>();
         CreateTextBox(OpenShockSetting.Server, "Server", "The OpenShock Server", "https://api.openshock.app");
         CreateCustomSetting(OpenShockSetting.APIKey, new StringModuleSetting("API Key", "Your OpenShock API key", typeof(OpenShockAPIKey), string.Empty));
+        CreateCustomSetting(OpenShockSetting.ShockerCache, new ShockerCacheSetting());
 
         CreateSlider(OpenShockSetting.ButtonDelay, "Button Delay",
             "The amount of time in milliseconds the shock, vibrate, and beep parameters need to be true to execute the action. This is helpful for if you accidentally press buttons on your action menu", 0, 0, 1000, 10);
@@ -70,7 +62,7 @@ public class OpenShockModule : Module, ISpeechHandler
         CreateCustomSetting(OpenShockSetting.Groups, new ShockerGroupModuleSetting());
         CreateCustomSetting(OpenShockSetting.Phrases, new PhraseModuleSetting());
 
-        CreateGroup("Credentials", string.Empty, OpenShockSetting.Server, OpenShockSetting.APIKey);
+        CreateGroup("Credentials", string.Empty, OpenShockSetting.Server, OpenShockSetting.APIKey, OpenShockSetting.ShockerCache);
         CreateGroup("Management", string.Empty, OpenShockSetting.Groups);
         CreateGroup("Tweaks", string.Empty, OpenShockSetting.ButtonDelay);
         CreateGroup("Speech", string.Empty, OpenShockSetting.Phrases);
@@ -91,8 +83,13 @@ public class OpenShockModule : Module, ISpeechHandler
 
     protected override async Task<bool> OnModuleStart()
     {
+        cancellationToken = new CancellationTokenSource();
         await reset();
+        return await FetchShockers();
+    }
 
+    internal async Task<bool> FetchShockers()
+    {
         var server = GetSettingValue<string>(OpenShockSetting.Server);
         var apiKey = GetSettingValue<string>(OpenShockSetting.APIKey);
 
@@ -125,8 +122,16 @@ public class OpenShockModule : Module, ISpeechHandler
 
             if (shockers.TryPickT0(out var shocker, out _))
             {
-                ShockersList = shocker.Value;
-                var instancesNames = string.Join("', '", ShockerWithHubs.Select(item => item.Shocker.Name));
+                var shockerList = shocker.Value.SelectMany(hub =>
+                    hub.Shockers.Select(shockerItem => new ShockerWithHub
+                    {
+                        Hub = hub,
+                        Shocker = shockerItem,
+                    })
+                ).ToList();
+                ShockerWithHubs.Attribute.Clear();
+                ShockerWithHubs.Attribute.AddRange(shockerList);
+                var instancesNames = string.Join("', '", ShockerWithHubs.Attribute.Select(item => item.Shocker.Name));
                 Log($"Shockers found: '{instancesNames}'");
 
                 return true;
@@ -286,9 +291,9 @@ public class OpenShockModule : Module, ISpeechHandler
 
     public async Task HandleAction(Guid? groupId, ControlType mode)
     {
-        var localIntensity = 0f;
-        var localDuration = 0f;
-        var localGroup = globalGroupID;
+        float localIntensity;
+        float localDuration;
+        Guid? localGroup;
 
         if (groupId is not null && groupId == Guid.Empty)
         {
@@ -309,7 +314,7 @@ public class OpenShockModule : Module, ISpeechHandler
             return;
         }
 
-        await ExecuteGroupAsyncFloat((Guid)localGroup!, mode, localIntensity, localDuration);
+        await ExecuteGroupAsyncFloat((Guid)localGroup, mode, localIntensity, localDuration);
     }
 
     public Task<bool> ExecuteGroupAsyncFloat(Guid groupId, ControlType mode, float intensityPercentage, float durationPercentage, string? customName = null, bool exclusive = false)
@@ -382,7 +387,7 @@ public class OpenShockModule : Module, ISpeechHandler
         var instancesNames = string.Join("', '", instances
             .Select(item =>
             {
-                var id = ShockerWithHubs.SingleOrDefault(i => i.Shocker.Id == item.Id);
+                var id = ShockerWithHubs.Attribute.SingleOrDefault(i => i.Shocker.Id == item.Id);
                 return $"Id: {item.Id}, Name: '{id?.Shocker.Name ?? ""}', Type: {item.Type}, Intensity: {item.Intensity}, Duration: {item.Duration}, Exclusive: {item.Exclusive}";
             })
         );
@@ -556,6 +561,7 @@ public class OpenShockModule : Module, ISpeechHandler
     {
         Server,
         APIKey,
+        ShockerCache,
         ButtonDelay,
         Groups,
         Phrases

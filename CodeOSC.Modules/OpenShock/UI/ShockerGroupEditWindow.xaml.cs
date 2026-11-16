@@ -2,7 +2,6 @@
 // See the LICENSE file in the repository root for full license text.
 
 using System;
-using System.Collections.Immutable;
 using System.Windows;
 using VRCOSC.App.UI.Core;
 using VRCOSC.App.Utils;
@@ -14,7 +13,7 @@ public partial class ShockerGroupEditWindow : IManagedWindow
     private readonly OpenShockModule module;
     public ShockerGroup ShockerGroup { get; set; }
 
-    public ImmutableArray<ShockerWithHub> ShockerItemsSource => module.ShockerWithHubs;
+    public ShockerCacheSetting ShockerItemsSource => module.ShockerWithHubs;
 
     public ShockerGroupEditWindow(OpenShockModule module, ShockerGroup shockerGroup)
     {

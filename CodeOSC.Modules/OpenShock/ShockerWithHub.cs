@@ -6,7 +6,7 @@ using OpenShock.SDK.CSharp.Serialization;
 namespace CodeOSC.Modules.OpenShock;
 
 [JsonObject(MemberSerialization.OptOut)]
-public class ShockerWithHub
+public class ShockerWithHub : IEquatable<ShockerWithHub>
 {
     [JsonProperty("hub")]
     public required Hub Hub;
@@ -14,8 +14,22 @@ public class ShockerWithHub
     [JsonProperty("shocker")]
     public required Shocker Shocker;
 
+    [JsonIgnore]
+    public string Name => $"Hub: '{Hub.Name}', Shocker: '{Shocker.Name}'";
+
+    [JsonIgnore]
     public string ShockerName => Shocker.Name;
+
+    [JsonIgnore]
     public Guid ShockerId => Shocker.Id;
+
+    public bool Equals(ShockerWithHub? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        return Hub == other.Hub && Shocker == other.Shocker;
+    }
 }
 
 [JsonObject(MemberSerialization.OptOut)]
@@ -61,7 +75,7 @@ public class Shocker
     public required ushort RfId { get; set; }
 
     [JsonProperty("model")]
-    [JsonConverter(typeof(UnknownEnumTypeConverter<ShockerModelType>))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnknownEnumTypeConverter<ShockerModelType>))]
     public required ShockerModelType Model { get; set; }
 
     [JsonProperty("name")]

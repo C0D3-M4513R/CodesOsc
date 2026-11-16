@@ -61,7 +61,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
                                                     <ComboBox Grid.Column="0"
-                                                              ItemsSource="{Binding ShockerItemsSource, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
+                                                              ItemsSource="{Binding ShockerItemsSource.Attribute, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
                                                               DisplayMemberPath="ShockerName"
                                                               FontSize="16"
                                                               SelectedValuePath="ShockerId"
